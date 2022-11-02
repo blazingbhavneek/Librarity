@@ -80,6 +80,7 @@ public class Main extends javax.swing.JFrame {
         user_add_btn = new javax.swing.JButton();
         user_delete_btn = new javax.swing.JButton();
         user_update_btn = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
         panel_books = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         jTable3 = new javax.swing.JTable();
@@ -304,6 +305,11 @@ public class Main extends javax.swing.JFrame {
         });
 
         jButton2.setText("Search");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         user_search_phone.setText("Search by Phone");
         user_search_phone.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -407,6 +413,13 @@ public class Main extends javax.swing.JFrame {
             }
         });
 
+        jButton1.setText("Refresh Table");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -441,7 +454,8 @@ public class Main extends javax.swing.JFrame {
                             .addComponent(user_add_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGap(132, 132, 132)
                             .addComponent(user_delete_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addComponent(user_update_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(user_update_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jButton1))
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -483,6 +497,8 @@ public class Main extends javax.swing.JFrame {
                         .addComponent(user_add_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(user_delete_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(user_update_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(42, 42, 42)
+                .addComponent(jButton1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(user_search_name, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -918,7 +934,7 @@ public class Main extends javax.swing.JFrame {
                     .addComponent(jScrollPane4))
                 .addContainerGap())
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panel_issuesLayout.createSequentialGroup()
-                .addGap(123, 123, 123)
+                .addGap(120, 120, 120)
                 .addGroup(panel_issuesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(issue_book_input, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -985,6 +1001,12 @@ public class Main extends javax.swing.JFrame {
                     v2.add(Rs.getString("user_address"));
                 }
                 DFT.addRow(v2);
+                insert = db.prepareStatement("SELECT COUNT(*) FROM users");
+                ResultSet num=insert.executeQuery();
+                num.next();
+                int count=num.getByte(1);
+                total_user_label.setText(Integer.toString(count));
+                
             }
         } catch (ClassNotFoundException | SQLException e) {
             JOptionPane.showMessageDialog(this, "Error: "+ e);
@@ -1332,6 +1354,41 @@ public class Main extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_user_update_btnActionPerformed
 
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+         try {
+             String user_name=user_search_name.getText().trim();
+
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            insert = db.prepareStatement("SELECT * FROM users WHERE user_name=?");
+            insert.setString(1, user_name);
+            ResultSet Rs = insert.executeQuery();
+            
+            ResultSetMetaData RSMD = (ResultSetMetaData) Rs.getMetaData();
+             int CC = RSMD.getColumnCount();
+            DefaultTableModel DFT = (DefaultTableModel) users_table.getModel();
+            DFT.setRowCount(0);
+
+            while (Rs.next()) {
+                Vector v2 = new Vector();
+           
+                for (int ii = 1; ii <= CC; ii++) {
+                    v2.add(Rs.getString("user_name"));
+                    v2.add(Rs.getString("user_phone"));
+                    v2.add(Rs.getString("user_address"));
+                }
+                DFT.addRow(v2);
+            }
+        } catch (ClassNotFoundException | SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: "+ e);
+        }
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        user_table_update();
+    }//GEN-LAST:event_jButton1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1379,6 +1436,7 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JTextField issue_book_input;
     private javax.swing.JButton issue_delete_btn;
     private javax.swing.JTextField issue_phone_input;
+    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
@@ -1441,4 +1499,5 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JButton user_update_btn;
     private javax.swing.JTable users_table;
     // End of variables declaration//GEN-END:variables
+
 }
