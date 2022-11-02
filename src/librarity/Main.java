@@ -4,14 +4,19 @@
  */
 package librarity;
 
+import com.mysql.cj.jdbc.result.ResultSetMetaData;
 import java.awt.Color;
+import java.awt.HeadlessException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.ResultSet;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 
 /**
@@ -19,12 +24,19 @@ import javax.swing.JOptionPane;
  * @author Bhavneek
  */
 public class Main extends javax.swing.JFrame {
-
+    
+    Connection db;
+    PreparedStatement insert;
     /**
      * Creates new form Main
+     * @throws java.sql.SQLException
+     * @throws java.lang.ClassNotFoundException
      */
-    public Main() {
+    public Main() throws SQLException, ClassNotFoundException {
         initComponents();
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        db = DriverManager.getConnection("jdbc:mysql://localhost/librarity","root","");
+        user_table_update();
     }
 
     /**
@@ -47,7 +59,7 @@ public class Main extends javax.swing.JFrame {
         jPanel2 = new javax.swing.JPanel();
         panel_users = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTable2 = new javax.swing.JTable();
+        users_table = new javax.swing.JTable();
         jPanel3 = new javax.swing.JPanel();
         user_search_name = new javax.swing.JTextField();
         jButton2 = new javax.swing.JButton();
@@ -241,7 +253,7 @@ public class Main extends javax.swing.JFrame {
 
         panel_users.setBackground(new java.awt.Color(255, 255, 255));
 
-        jTable2.setModel(new javax.swing.table.DefaultTableModel(
+        users_table.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null},
                 {null, null, null},
@@ -267,7 +279,12 @@ public class Main extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
-        jScrollPane2.setViewportView(jTable2);
+        users_table.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                users_tableMouseClicked(evt);
+            }
+        });
+        jScrollPane2.setViewportView(users_table);
 
         jPanel3.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -384,6 +401,11 @@ public class Main extends javax.swing.JFrame {
         });
 
         user_update_btn.setText("Update");
+        user_update_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                user_update_btnActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -412,17 +434,15 @@ public class Main extends javax.swing.JFrame {
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
             .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(33, 33, 33)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                        .addGroup(jPanel3Layout.createSequentialGroup()
+                            .addComponent(user_add_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(132, 132, 132)
+                            .addComponent(user_delete_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(user_update_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGap(33, 33, 33)
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
-                            .addGroup(jPanel3Layout.createSequentialGroup()
-                                .addComponent(user_add_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(132, 132, 132)
-                                .addComponent(user_delete_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(user_update_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGap(33, 33, 33)
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -943,10 +963,33 @@ public class Main extends javax.swing.JFrame {
 
     Color lgray = new Color(213,213,213);
     Color dblue = new Color(61,108,185);
-    Color tteal = new Color(0,255,240);
     
-    Connection db;
-    PreparedStatement insert;
+     private void user_table_update() {
+        int CC;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            insert = db.prepareStatement("SELECT * FROM users");
+            ResultSet Rs = insert.executeQuery();
+            
+            ResultSetMetaData RSMD = (ResultSetMetaData) Rs.getMetaData();
+            CC = RSMD.getColumnCount();
+            DefaultTableModel DFT = (DefaultTableModel) users_table.getModel();
+            DFT.setRowCount(0);
+
+            while (Rs.next()) {
+                Vector v2 = new Vector();
+           
+                for (int ii = 1; ii <= CC; ii++) {
+                    v2.add(Rs.getString("user_name"));
+                    v2.add(Rs.getString("user_phone"));
+                    v2.add(Rs.getString("user_address"));
+                }
+                DFT.addRow(v2);
+            }
+        } catch (ClassNotFoundException | SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: "+ e);
+        }
+    }
     
     private void main_btn_usersMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_main_btn_usersMouseClicked
         // TODO add your handling code here:
@@ -1020,6 +1063,38 @@ public class Main extends javax.swing.JFrame {
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
+         try {
+             String sphone=user_search_phone.getText().trim();
+        for(int i=0; i<sphone.length(); i++){
+            if(sphone.charAt(i)-'0'<0 && sphone.charAt(i)-'0'>9){
+                JOptionPane.showMessageDialog(this, "Enter a valid number");
+                return;
+            }
+        }
+        long user_phone=Long.parseLong(sphone);
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            insert = db.prepareStatement("SELECT * FROM users WHERE user_phone=?");
+            insert.setLong(1, user_phone);
+            ResultSet Rs = insert.executeQuery();
+            
+            ResultSetMetaData RSMD = (ResultSetMetaData) Rs.getMetaData();
+             int CC = RSMD.getColumnCount();
+            DefaultTableModel DFT = (DefaultTableModel) users_table.getModel();
+            DFT.setRowCount(0);
+
+            while (Rs.next()) {
+                Vector v2 = new Vector();
+           
+                for (int ii = 1; ii <= CC; ii++) {
+                    v2.add(Rs.getString("user_name"));
+                    v2.add(Rs.getString("user_phone"));
+                    v2.add(Rs.getString("user_address"));
+                }
+                DFT.addRow(v2);
+            }
+        } catch (ClassNotFoundException | SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: "+ e);
+        }
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void user_name_inputActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_user_name_inputActionPerformed
@@ -1028,6 +1103,31 @@ public class Main extends javax.swing.JFrame {
 
     private void user_delete_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_user_delete_btnActionPerformed
         // TODO add your handling code here:
+            DefaultTableModel model = (DefaultTableModel) users_table.getModel();
+          var selectedIndex = users_table.getSelectedRow();
+            try {   
+                
+            Long id = Long.valueOf(model.getValueAt(selectedIndex, 1).toString());
+            int dialogResult = JOptionPane.showConfirmDialog (null, "Do you want to Delete the record","Warning",JOptionPane.YES_NO_OPTION);
+            if(dialogResult == JOptionPane.YES_OPTION){
+
+            Class.forName("com.mysql.cj.jdbc.Driver");
+         
+            insert = db.prepareStatement("DELETE from users WHERE user_phone = ?");
+            insert.setLong(1,id);
+            insert.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Record Delete");
+            user_name_input.setText("");
+            user_phone_input.setText("");
+            user_address_input.setText("");
+
+            user_table_update();
+           
+           }
+
+        } catch (ClassNotFoundException | SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error: "+ex);
+        }
     }//GEN-LAST:event_user_delete_btnActionPerformed
 
     private void user_search_nameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_user_search_nameActionPerformed
@@ -1175,27 +1275,62 @@ public class Main extends javax.swing.JFrame {
         }
         
         try{
-            Class.forName("com.mysql.jdbc.Driver");
-            db = DriverManager.getConnection("jdbc:mysql://localhost/librarity","root","");
-            insert = db.prepareStatement("insert into record (user_phone,user_name,user_address)values(?,?,?)");
-            insert.setString(2,user_name);
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            insert = db.prepareStatement("insert into users (user_phone,user_name,user_address) values(?,?,?)");
             insert.setLong(1,user_phone);
+            insert.setString(2,user_name);
             insert.setString(3,user_address);
             insert.executeUpdate();
             JOptionPane.showMessageDialog(this, "Record Saved");
             
             
             user_name_input.setText("");
-            user_name_input.setText("");
-            user_name_input.setText("");
+            user_phone_input.setText("");
+            user_address_input.setText("");
+            user_name_input.requestFocus();
             user_table_update();
         }
-        catch (ClassNotFoundException ex) {
-            Logger.getLogger(crud.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
-            Logger.getLogger(crud.class.getName()).log(Level.SEVERE, null, ex);
-        }    
+        catch (HeadlessException | ClassNotFoundException | SQLException  ex) {
+            JOptionPane.showMessageDialog(this, "Error: "+ex);
+        }  
     }//GEN-LAST:event_user_add_btnActionPerformed
+
+    private void users_tableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_users_tableMouseClicked
+        // TODO add your handling code here:
+          DefaultTableModel model = (DefaultTableModel) users_table.getModel();
+          int selectedIndex = users_table.getSelectedRow();
+        
+           user_name_input.setText(model.getValueAt(selectedIndex, 0).toString());
+           user_phone_input.setText(model.getValueAt(selectedIndex, 1).toString());
+           user_address_input.setText(model.getValueAt(selectedIndex, 2).toString());
+    }//GEN-LAST:event_users_tableMouseClicked
+
+    private void user_update_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_user_update_btnActionPerformed
+// TODO add your handling code here:
+            try { 
+            DefaultTableModel model = (DefaultTableModel) users_table.getModel();
+            int selectedIndex = users_table.getSelectedRow();
+            Long id = Long.valueOf(model.getValueAt(selectedIndex, 1).toString());
+            String user_name =user_name_input.getText();
+            String user_address =user_address_input.getText();
+  
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            insert = db.prepareStatement("UPDATE users SET user_name= ?, user_address= ? WHERE user_phone= ?");
+            insert.setString(1,user_name);
+            insert.setLong(3, id);
+            insert.setString(2,user_address);
+            insert.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Record Updated");
+            user_name_input.setText("");
+            user_phone_input.setText("");
+            user_address_input.setText("");
+            user_table_update();
+           
+            
+        } catch (ClassNotFoundException | SQLException ex) {
+             JOptionPane.showMessageDialog(this, "Error: "+ex);
+        }
+    }//GEN-LAST:event_user_update_btnActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1225,9 +1360,11 @@ public class Main extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
+        java.awt.EventQueue.invokeLater(() -> {
+            try {
                 new Main().setVisible(true);
+            } catch (SQLException | ClassNotFoundException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
     }
@@ -1271,7 +1408,6 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JTable jTable1;
-    private javax.swing.JTable jTable2;
     private javax.swing.JTable jTable3;
     private javax.swing.JTable jTable4;
     private javax.swing.JPanel main_btn_books;
@@ -1303,5 +1439,6 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JTextField user_search_name;
     private javax.swing.JTextField user_search_phone;
     private javax.swing.JButton user_update_btn;
+    private javax.swing.JTable users_table;
     // End of variables declaration//GEN-END:variables
 }
