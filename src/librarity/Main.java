@@ -37,6 +37,7 @@ public class Main extends javax.swing.JFrame {
         db = DriverManager.getConnection("jdbc:mysql://localhost/librarity","root","");
         user_table_update();
          books_table_update();
+         issue_table_update();
     }
 
     /**
@@ -107,7 +108,7 @@ public class Main extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         jScrollPane4 = new javax.swing.JScrollPane();
-        jTable4 = new javax.swing.JTable();
+        issue_table = new javax.swing.JTable();
         jLabel1 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         search_issue_book_id_input = new javax.swing.JTextField();
@@ -819,7 +820,7 @@ public class Main extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(jTable1);
 
-        jTable4.setModel(new javax.swing.table.DefaultTableModel(
+        issue_table.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null},
                 {null, null, null},
@@ -845,7 +846,12 @@ public class Main extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
-        jScrollPane4.setViewportView(jTable4);
+        issue_table.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                issue_tableMouseClicked(evt);
+            }
+        });
+        jScrollPane4.setViewportView(issue_table);
 
         jLabel1.setFont(new java.awt.Font("HelveticaNowDisplay Bold", 0, 14)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -1069,6 +1075,38 @@ public class Main extends javax.swing.JFrame {
                 num.next();
                 int count=num.getByte(1);
                 total_book_label.setText(Integer.toString(count));
+                
+            }
+        } catch (ClassNotFoundException | SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: "+ e);
+        }
+    }
+     private void issue_table_update() {
+        int CC;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            insert = db.prepareStatement("SELECT * FROM issues");
+            ResultSet Rs = insert.executeQuery();
+            
+            ResultSetMetaData RSMD = (ResultSetMetaData) Rs.getMetaData();
+            CC = RSMD.getColumnCount();
+            DefaultTableModel DFT = (DefaultTableModel) issue_table.getModel();
+            DFT.setRowCount(0);
+
+            while (Rs.next()) {
+                Vector v2 = new Vector();
+           
+                for (int ii = 1; ii <= CC; ii++) {
+                    v2.add(Rs.getString("book_id_fk"));
+                    v2.add(Rs.getString("user_phone_fk"));
+                    v2.add(Rs.getString("issue_date"));
+                }
+                DFT.addRow(v2);
+                insert = db.prepareStatement("SELECT COUNT(*) FROM issues");
+                ResultSet num=insert.executeQuery();
+                num.next();
+                int count=num.getByte(1);
+                total_issues_label.setText(Integer.toString(count));
                 
             }
         } catch (ClassNotFoundException | SQLException e) {
@@ -1329,7 +1367,41 @@ public class Main extends javax.swing.JFrame {
 
     private void issue_add_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_issue_add_btnActionPerformed
         // TODO add your handling code here:
+        var book_id=Integer.parseInt(issue_book_input.getText().trim());
+
+        String sphone=issue_phone_input.getText().trim();
+        for(int i=0; i<sphone.length(); i++){
+            if(sphone.charAt(i)-'0'<0 && sphone.charAt(i)-'0'>9){
+                JOptionPane.showMessageDialog(this, "Enter a valid number");
+                return;
+            }
+        }
+        long user_phone=Long.parseLong(sphone);
+        long millis=System.currentTimeMillis();  
+        java.sql.Date date=new java.sql.Date(millis);
+        if(issue_book_input.getText().equals("") || sphone.equals("") ){
+            JOptionPane.showMessageDialog(this, "No field must be Empty");
+            return;
+        }
         
+        try{
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            insert = db.prepareStatement("insert into issues (book_id_fk,user_phone_fk,issue_date) values(?,?,?)");
+            insert.setInt(1,book_id);
+            insert.setLong(2,user_phone);
+            insert.setDate(3,date);
+            insert.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Record Saved");
+            
+            
+            issue_book_input.setText("");
+            issue_phone_input.setText("");
+            issue_book_input.requestFocus();
+            issue_table_update();
+        }
+        catch (HeadlessException | ClassNotFoundException | SQLException  ex) {
+            JOptionPane.showMessageDialog(this, "Error: "+ex);
+        }
     }//GEN-LAST:event_issue_add_btnActionPerformed
 
     private void search_book_id_inputFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_search_book_id_inputFocusGained
@@ -1599,6 +1671,15 @@ public class Main extends javax.swing.JFrame {
         books_table_update();
     }//GEN-LAST:event_jButton4ActionPerformed
 
+    private void issue_tableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_issue_tableMouseClicked
+        // TODO add your handling code here:
+        DefaultTableModel model = (DefaultTableModel) issue_table.getModel();
+          int selectedIndex = issue_table.getSelectedRow();
+        
+           issue_book_input.setText(model.getValueAt(selectedIndex, 0).toString());
+           issue_phone_input.setText(model.getValueAt(selectedIndex, 1).toString());
+    }//GEN-LAST:event_issue_tableMouseClicked
+
     /**
      * @param args the command line arguments
      */
@@ -1647,6 +1728,7 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JTextField issue_book_input;
     private javax.swing.JButton issue_delete_btn;
     private javax.swing.JTextField issue_phone_input;
+    private javax.swing.JTable issue_table;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
@@ -1678,7 +1760,6 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JTable jTable1;
-    private javax.swing.JTable jTable4;
     private javax.swing.JPanel main_btn_books;
     private javax.swing.JPanel main_btn_issues;
     private javax.swing.JPanel main_btn_users;
