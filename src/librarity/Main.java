@@ -18,7 +18,6 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
-
 /**
  *
  * @author Bhavneek
@@ -37,6 +36,7 @@ public class Main extends javax.swing.JFrame {
         Class.forName("com.mysql.cj.jdbc.Driver");
         db = DriverManager.getConnection("jdbc:mysql://localhost/librarity","root","");
         user_table_update();
+         books_table_update();
     }
 
     /**
@@ -83,7 +83,7 @@ public class Main extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         panel_books = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
-        jTable3 = new javax.swing.JTable();
+        books_table = new javax.swing.JTable();
         jPanel4 = new javax.swing.JPanel();
         search_book_id_input = new javax.swing.JTextField();
         search_book_id_btn = new javax.swing.JButton();
@@ -102,6 +102,7 @@ public class Main extends javax.swing.JFrame {
         book_add_btn = new javax.swing.JButton();
         book_delete_btn = new javax.swing.JButton();
         book_update_btn = new javax.swing.JButton();
+        jButton4 = new javax.swing.JButton();
         panel_issues = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
@@ -534,7 +535,7 @@ public class Main extends javax.swing.JFrame {
 
         panel_books.setBackground(new java.awt.Color(255, 255, 255));
 
-        jTable3.setModel(new javax.swing.table.DefaultTableModel(
+        books_table.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null},
                 {null, null, null},
@@ -560,7 +561,12 @@ public class Main extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
-        jScrollPane3.setViewportView(jTable3);
+        books_table.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                books_tableMouseClicked(evt);
+            }
+        });
+        jScrollPane3.setViewportView(books_table);
 
         jPanel4.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -580,6 +586,11 @@ public class Main extends javax.swing.JFrame {
         });
 
         search_book_id_btn.setText("Search");
+        search_book_id_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                search_book_id_btnActionPerformed(evt);
+            }
+        });
 
         search_book_author_input.setText("Search by Author");
         search_book_author_input.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -655,6 +666,11 @@ public class Main extends javax.swing.JFrame {
         });
 
         book_add_btn.setText("Add");
+        book_add_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                book_add_btnActionPerformed(evt);
+            }
+        });
 
         book_delete_btn.setText("Delete");
         book_delete_btn.addActionListener(new java.awt.event.ActionListener() {
@@ -664,6 +680,18 @@ public class Main extends javax.swing.JFrame {
         });
 
         book_update_btn.setText("Update");
+        book_update_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                book_update_btnActionPerformed(evt);
+            }
+        });
+
+        jButton4.setText("Refresh Table");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -699,7 +727,8 @@ public class Main extends javax.swing.JFrame {
                             .addComponent(book_add_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGap(132, 132, 132)
                             .addComponent(book_delete_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addComponent(book_update_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(book_update_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jButton4))
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -735,7 +764,9 @@ public class Main extends javax.swing.JFrame {
                         .addComponent(book_add_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(book_delete_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(book_update_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 110, Short.MAX_VALUE)
+                .addGap(36, 36, 36)
+                .addComponent(jButton4)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(search_book_id_input, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(search_book_id_btn))
@@ -1012,6 +1043,38 @@ public class Main extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Error: "+ e);
         }
     }
+     private void books_table_update() {
+        int CC;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            insert = db.prepareStatement("SELECT * FROM books");
+            ResultSet Rs = insert.executeQuery();
+            
+            ResultSetMetaData RSMD = (ResultSetMetaData) Rs.getMetaData();
+            CC = RSMD.getColumnCount();
+            DefaultTableModel DFT = (DefaultTableModel) books_table.getModel();
+            DFT.setRowCount(0);
+
+            while (Rs.next()) {
+                Vector v2 = new Vector();
+           
+                for (int ii = 1; ii <= CC; ii++) {
+                    v2.add(Rs.getString("book_id"));
+                    v2.add(Rs.getString("book_name"));
+                    v2.add(Rs.getString("book_author"));
+                }
+                DFT.addRow(v2);
+                insert = db.prepareStatement("SELECT COUNT(*) FROM books");
+                ResultSet num=insert.executeQuery();
+                num.next();
+                int count=num.getByte(1);
+                total_book_label.setText(Integer.toString(count));
+                
+            }
+        } catch (ClassNotFoundException | SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: "+ e);
+        }
+    }
     
     private void main_btn_usersMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_main_btn_usersMouseClicked
         // TODO add your handling code here:
@@ -1158,6 +1221,28 @@ public class Main extends javax.swing.JFrame {
 
     private void book_delete_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_book_delete_btnActionPerformed
         // TODO add your handling code here:
+            try {   
+          
+           DefaultTableModel model = (DefaultTableModel) books_table.getModel();
+            int selectedIndex = books_table.getSelectedRow();
+            int id =Integer.parseInt((String) (model.getValueAt(selectedIndex, 0)));
+            int dialogResult = JOptionPane.showConfirmDialog (null, "Do you want to Delete the record","Warning",JOptionPane.YES_NO_OPTION);
+            if(dialogResult == JOptionPane.YES_OPTION){
+
+            Class.forName("com.mysql.cj.jdbc.Driver");
+         
+            insert = db.prepareStatement("DELETE from books WHERE book_id = ?");
+            insert.setInt(1,id);
+            insert.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Record Delete");
+            book_name_input.setText("");
+            book_author_input.setText("");
+            books_table_update();
+            }
+            }
+            catch (ClassNotFoundException | SQLException ex) {
+             JOptionPane.showMessageDialog(this, "Error: "+ex);
+        }
     }//GEN-LAST:event_book_delete_btnActionPerformed
 
     private void book_name_inputActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_book_name_inputActionPerformed
@@ -1166,6 +1251,32 @@ public class Main extends javax.swing.JFrame {
 
     private void search_book_author_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_search_book_author_btnActionPerformed
         // TODO add your handling code here:
+         try {
+             String book_author=search_book_author_input.getText().trim();
+
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            insert = db.prepareStatement("SELECT * FROM books WHERE book_author=?");
+            insert.setString(1, book_author);
+            ResultSet Rs = insert.executeQuery();
+            
+            ResultSetMetaData RSMD = (ResultSetMetaData) Rs.getMetaData();
+             int CC = RSMD.getColumnCount();
+            DefaultTableModel DFT = (DefaultTableModel) books_table.getModel();
+            DFT.setRowCount(0);
+
+            while (Rs.next()) {
+                Vector v2 = new Vector();
+           
+                for (int ii = 1; ii <= CC; ii++) {
+                    v2.add(Rs.getString("book_id"));
+                    v2.add(Rs.getString("book_name"));
+                    v2.add(Rs.getString("book_author"));
+                }
+                DFT.addRow(v2);
+            }
+        } catch (ClassNotFoundException | SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: "+ e);
+        }
     }//GEN-LAST:event_search_book_author_btnActionPerformed
 
     private void search_book_id_inputActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_search_book_id_inputActionPerformed
@@ -1389,6 +1500,105 @@ public class Main extends javax.swing.JFrame {
         user_table_update();
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    private void book_add_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_book_add_btnActionPerformed
+        // TODO add your handling code here:
+        String book_name=book_name_input.getText().trim();
+        String book_author=book_author_input.getText().trim();
+        
+        if(book_name.equals("") || book_author.equals("") ){
+            JOptionPane.showMessageDialog(this, "No field must be Empty");
+            return;
+        }
+        
+        try{
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            insert = db.prepareStatement("insert into books (book_name,book_author) values(?,?)");
+            insert.setString(1,book_name);
+            insert.setString(2,book_author);
+            insert.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Record Saved");
+            
+            
+            book_author_input.setText("");
+            book_name_input.setText("");
+            book_name_input.requestFocus();
+            books_table_update();
+        }
+        catch (HeadlessException | ClassNotFoundException | SQLException  ex) {
+            JOptionPane.showMessageDialog(this, "Error: "+ex);
+        }  
+    }//GEN-LAST:event_book_add_btnActionPerformed
+
+    private void book_update_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_book_update_btnActionPerformed
+        // TODO add your handling code here:
+         try { 
+            DefaultTableModel model = (DefaultTableModel) books_table.getModel();
+            int selectedIndex = books_table.getSelectedRow();
+            int id =Integer.parseInt((String) (model.getValueAt(selectedIndex, 0)));
+            String book_name =book_name_input.getText();
+            String book_author =book_author_input.getText();
+  
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            insert = db.prepareStatement("UPDATE books SET book_name= ?, book_author= ? WHERE book_id= ?");
+            insert.setString(1,book_name);
+            insert.setInt(3, id);
+            insert.setString(2,book_author);
+            insert.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Record Updated");
+            book_name_input.setText("");
+            book_author_input.setText("");
+            books_table_update();
+           
+            
+        } catch (ClassNotFoundException | SQLException ex) {
+             JOptionPane.showMessageDialog(this, "Error: "+ex);
+        }
+    }//GEN-LAST:event_book_update_btnActionPerformed
+
+    private void books_tableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_books_tableMouseClicked
+        // TODO add your handling code here:
+        DefaultTableModel model = (DefaultTableModel) books_table.getModel();
+          int selectedIndex = books_table.getSelectedRow();
+        
+           book_name_input.setText(model.getValueAt(selectedIndex, 1).toString());
+           book_author_input.setText(model.getValueAt(selectedIndex, 2).toString());
+    }//GEN-LAST:event_books_tableMouseClicked
+
+    private void search_book_id_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_search_book_id_btnActionPerformed
+        // TODO add your handling code here:
+         try {
+             var book_id=Integer.parseInt(search_book_id_input.getText().trim());
+
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            insert = db.prepareStatement("SELECT * FROM books WHERE book_id=?");
+            insert.setInt(1, book_id);
+            ResultSet Rs = insert.executeQuery();
+            
+            ResultSetMetaData RSMD = (ResultSetMetaData) Rs.getMetaData();
+             int CC = RSMD.getColumnCount();
+            DefaultTableModel DFT = (DefaultTableModel) books_table.getModel();
+            DFT.setRowCount(0);
+
+            while (Rs.next()) {
+                Vector v2 = new Vector();
+           
+                for (int ii = 1; ii <= CC; ii++) {
+                    v2.add(Rs.getString("book_id"));
+                    v2.add(Rs.getString("book_name"));
+                    v2.add(Rs.getString("book_author"));
+                }
+                DFT.addRow(v2);
+            }
+        } catch (ClassNotFoundException | SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: "+ e);
+        }
+    }//GEN-LAST:event_search_book_id_btnActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        // TODO add your handling code here:
+        books_table_update();
+    }//GEN-LAST:event_jButton4ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1432,6 +1642,7 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JButton book_delete_btn;
     private javax.swing.JTextField book_name_input;
     private javax.swing.JButton book_update_btn;
+    private javax.swing.JTable books_table;
     private javax.swing.JButton issue_add_btn;
     private javax.swing.JTextField issue_book_input;
     private javax.swing.JButton issue_delete_btn;
@@ -1439,6 +1650,7 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -1466,7 +1678,6 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JTable jTable1;
-    private javax.swing.JTable jTable3;
     private javax.swing.JTable jTable4;
     private javax.swing.JPanel main_btn_books;
     private javax.swing.JPanel main_btn_issues;
