@@ -37,7 +37,7 @@ public class Main extends javax.swing.JFrame {
     public Main() throws SQLException, ClassNotFoundException {
         initComponents();
         Class.forName("com.mysql.cj.jdbc.Driver");
-        db = DriverManager.getConnection("jdbc:mysql://localhost/librarity","root","");
+        db = DriverManager.getConnection("jdbc:mysql://remotemysql.com/rG9rF8AQBc","rG9rF8AQBc","gyjdo3ZWcm");
         user_table_update();
          books_table_update();
          issue_table_update();
@@ -1397,7 +1397,7 @@ public class Main extends javax.swing.JFrame {
         }
         long user_phone=Long.parseLong(sphone);
             Class.forName("com.mysql.cj.jdbc.Driver");
-            insert = db.prepareStatement("SELECT * FROM issues WHERE user_phone=?");
+            insert = db.prepareStatement("SELECT * FROM issues WHERE user_phone_fk=?");
             insert.setLong(1, user_phone);
             ResultSet Rs = insert.executeQuery();
             
