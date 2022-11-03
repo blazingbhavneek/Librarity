@@ -915,6 +915,11 @@ public class Main extends javax.swing.JFrame {
         });
 
         issue_delete_btn.setText("Delete");
+        issue_delete_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                issue_delete_btnActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout panel_issuesLayout = new javax.swing.GroupLayout(panel_issues);
         panel_issues.setLayout(panel_issuesLayout);
@@ -1679,6 +1684,32 @@ public class Main extends javax.swing.JFrame {
            issue_book_input.setText(model.getValueAt(selectedIndex, 0).toString());
            issue_phone_input.setText(model.getValueAt(selectedIndex, 1).toString());
     }//GEN-LAST:event_issue_tableMouseClicked
+
+    private void issue_delete_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_issue_delete_btnActionPerformed
+        // TODO add your handling code here:
+        try {   
+          
+           DefaultTableModel model = (DefaultTableModel) issue_table.getModel();
+            int selectedIndex = issue_table.getSelectedRow();
+            int id =Integer.parseInt((String) (model.getValueAt(selectedIndex, 0)));
+            int dialogResult = JOptionPane.showConfirmDialog (null, "Do you want to Delete the record","Warning",JOptionPane.YES_NO_OPTION);
+            if(dialogResult == JOptionPane.YES_OPTION){
+
+            Class.forName("com.mysql.cj.jdbc.Driver");
+         
+            insert = db.prepareStatement("DELETE from issues WHERE book_id_fk = ?");
+            insert.setInt(1,id);
+            insert.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Record Delete");
+            issue_book_input.setText("");
+            issue_phone_input.setText("");
+            issue_table_update();
+            }
+            }
+            catch (ClassNotFoundException | SQLException ex) {
+             JOptionPane.showMessageDialog(this, "Error: "+ex);
+        }
+    }//GEN-LAST:event_issue_delete_btnActionPerformed
 
     /**
      * @param args the command line arguments
